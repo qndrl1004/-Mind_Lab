@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Survey } from './survey.entity';
+import { SurveyInput } from './survey.resolver';
 
 @Injectable()
 export class SurveyService {
@@ -24,12 +25,8 @@ export class SurveyService {
     return survey;
   }
 
-  async createSurvey(input: {
-    title: string;
-    description: string;
-  }): Promise<Survey> {
-    const { title, description } = input;
-    const survey = this.surveyRepository.create({ title, description });
+  async createSurvey(data: SurveyInput): Promise<Survey> {
+    const survey = this.surveyRepository.create(data);
     return this.surveyRepository.save(survey);
   }
 

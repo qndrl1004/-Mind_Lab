@@ -1,0 +1,83 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Survey {
+  id: Int!
+  title: String!
+  description: String!
+}
+
+type Choice {
+  id: Int!
+  content: String!
+  question: Question!
+}
+
+type Question {
+  id: Int!
+  content: String!
+  choices: [Choice!]
+}
+
+type Answer {
+  id: Int!
+  question: Question!
+  choice: Choice!
+  score: Int!
+}
+
+type Query {
+  getSurveys: [Survey!]!
+  getSurvey(id: Int!): Survey!
+  getQuestions: [Question!]!
+  getQuestion(id: Int!): Question!
+  getChoices: [Choice!]!
+  getChoice(id: Int!): Choice!
+  answer(id: Int!): Answer!
+  answers: [Answer!]!
+}
+
+type Mutation {
+  createSurvey(input: SurveyInput!): Survey!
+  updateSurvey(id: Int!, input: SurveyInput!): Survey!
+  deleteSurvey(id: Int!): Boolean!
+  createQuestion(input: CreateQuestionInput!): Question!
+  updateQuestion(input: UpdateQuestionInput!): Question!
+  deleteQuestion(id: Int!): Boolean!
+  createChoice(input: CreateChoiceInput!): Choice!
+  updateChoice(input: UpdateChoiceInput!): Choice!
+  deleteChoice(id: Int!): Boolean!
+  createAnswer(input: AnswerInput!): Answer!
+  deleteAnswer(id: Int!): Boolean!
+}
+
+input SurveyInput {
+  title: String!
+  description: String!
+}
+
+input CreateQuestionInput {
+  content: String!
+}
+
+input UpdateQuestionInput {
+  id: Int!
+  content: String!
+}
+
+input CreateChoiceInput {
+  content: String!
+  questionId: Int!
+}
+
+input UpdateChoiceInput {
+  id: Int!
+  content: String!
+}
+
+input AnswerInput {
+  questionId: Int!
+  choiceId: Int!
+  score: Int!
+}

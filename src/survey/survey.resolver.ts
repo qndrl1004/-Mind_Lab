@@ -11,7 +11,7 @@ import { SurveyService } from './survey.service';
 import { Survey } from './survey.entity';
 
 @InputType()
-class SurveyInput {
+export class SurveyInput {
   @Field()
   title: string;
 
