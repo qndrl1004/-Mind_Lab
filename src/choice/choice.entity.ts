@@ -6,8 +6,10 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Question } from '../question/question.entity';
+import { ObjectType } from '@nestjs/graphql';
 
 @Entity()
+@ObjectType()
 export class Choice {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,7 +20,4 @@ export class Choice {
   @ManyToOne(() => Question, (question) => question.choices)
   @JoinColumn({ name: 'questionId' })
   question: Question;
-
-  @Column({ name: 'question_id' })
-  questionId: number;
 }

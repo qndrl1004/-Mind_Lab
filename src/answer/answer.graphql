@@ -1,0 +1,22 @@
+type Answer {
+  id: Int!
+  question: Question!
+  choice: Choice!
+  score: Int!
+}
+
+input AnswerInput {
+  questionId: Int!
+  choiceId: Int!
+  score: Int!
+}
+
+type Query {
+  answer(id: Int!): Answer!
+  answers: [Answer!]!
+}
+
+type Mutation {
+  createAnswer(input: AnswerInput!): Answer!
+  deleteAnswer(id: Int!): Boolean!
+}

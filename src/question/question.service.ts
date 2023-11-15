@@ -1,40 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOneOptions, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Question } from './question.entity';
 
 @Injectable()
 export class QuestionService {
   constructor(
     @InjectRepository(Question)
-    private readonly questionRepository: Repository<Question>,
+    private questionRepository: Repository<Question>,
   ) {}
 
-  async createQuestion(content: string): Promise<Question> {
+  async getQuestions(): Promise<Question[]> {
+    return this.questionRepository.find({ relations: ['choices'] });
+  }
+
+  async getQuestion(id: number): Promise<Question> {
+    const question = await this.questionRepository.findOne({ where: { id } });
+
+    if (!question) {
+      throw new NotFoundException(`Question with id ${id} not found`);
+    }
+
+    return question;
+  }
+
+  async createQuestion(input: { content: string }): Promise<Question> {
+    const { content } = input;
     const question = this.questionRepository.create({ content });
-    return await this.questionRepository.save(question);
+    return this.questionRepository.save(question);
   }
 
-  async findAllQuestions(): Promise<Question[]> {
-    return await this.questionRepository.find();
+  async updateQuestion(input: {
+    id: number;
+    content: string;
+  }): Promise<Question> {
+    const { id, content } = input;
+    const question = await this.questionRepository.findOne({ where: { id } });
+
+    if (!question) {
+      throw new NotFoundException(`Question with id ${id} not found`);
+    }
+
+    question.content = content;
+    return this.questionRepository.save(question);
   }
 
-  async findQuestionById(id: number): Promise<Question | undefined> {
-    const options: FindOneOptions<Question> = {
-      where: { id },
-    };
-    return await this.questionRepository.findOne(options);
-  }
-
-  async updateQuestion(
-    id: number,
-    content: string,
-  ): Promise<Question | undefined> {
-    await this.questionRepository.update(id, { content });
-    return await this.findQuestionById(id);
-  }
-
-  async deleteQuestion(id: number): Promise<void> {
-    await this.questionRepository.delete(id);
+  async deleteQuestion(id: number): Promise<boolean> {
+    const deleteResult = await this.questionRepository.delete(id);
+    return deleteResult.affected > 0;
   }
 }

@@ -1,0 +1,26 @@
+type Choice {
+  id: Int!
+  content: String!
+  questionId: Int!
+}
+
+input CreateChoiceInput {
+  content: String!
+  questionId: Int!
+}
+
+input UpdateChoiceInput {
+  id: Int!
+  content: String!
+}
+
+type Query {
+  getChoices: [Choice]!
+  getChoice(id: Int!): Choice!
+}
+
+type Mutation {
+  createChoice(input: CreateChoiceInput): Choice!
+  updateChoice(input: UpdateChoiceInput): Choice!
+  deleteChoice(id: Int!): Boolean!
+}

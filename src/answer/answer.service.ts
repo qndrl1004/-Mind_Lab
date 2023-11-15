@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOneOptions, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Answer } from './answer.entity';
 
 @Injectable()
 export class AnswerService {
   constructor(
     @InjectRepository(Answer)
-    private readonly answerRepository: Repository<Answer>,
+    private answerRepository: Repository<Answer>,
   ) {}
 
   async createAnswer(
@@ -15,30 +15,30 @@ export class AnswerService {
     choiceId: number,
     score: number,
   ): Promise<Answer> {
-    const question = { id: questionId };
-    const choice = { id: choiceId };
-    const answer = this.answerRepository.create({ question, choice, score });
-    return await this.answerRepository.save(answer);
+    const answer = this.answerRepository.create({
+      question: { id: questionId },
+      choice: { id: choiceId },
+      score,
+    });
+    return this.answerRepository.save(answer);
   }
 
-  async findAllAnswers(): Promise<Answer[]> {
-    return await this.answerRepository.find();
+  async getAnswerById(id: number): Promise<Answer> {
+    try {
+      return await this.answerRepository.findOne({ where: { id } });
+    } catch (error) {
+      throw new NotFoundException(
+        `Error getting answer with id ${id}: ${error.message}`,
+      );
+    }
   }
 
-  async findAnswerById(id: number): Promise<Answer | undefined> {
-    const options: FindOneOptions<Answer> = {
-      where: { id },
-    };
-
-    return await this.answerRepository.findOne(options);
+  async getAllAnswers(): Promise<Answer[]> {
+    return this.answerRepository.find({ relations: ['question', 'choice'] });
   }
 
-  async updateAnswer(id: number, score: number): Promise<Answer | undefined> {
-    await this.answerRepository.update(id, { score });
-    return await this.findAnswerById(id);
-  }
-
-  async deleteAnswer(id: number): Promise<void> {
-    await this.answerRepository.delete(id);
+  async deleteAnswer(id: number): Promise<boolean> {
+    const deleteResult = await this.answerRepository.delete(id);
+    return deleteResult.affected > 0;
   }
 }

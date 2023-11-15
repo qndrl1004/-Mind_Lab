@@ -1,61 +1,55 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Survey } from './survey.entity';
-import { FindOneOptions } from 'typeorm';
-import { AnswerService } from 'src/answer/answer.service';
 
 @Injectable()
 export class SurveyService {
   constructor(
     @InjectRepository(Survey)
-    private readonly surveyRepository: Repository<Survey>,
-    private readonly answerService: AnswerService,
+    private surveyRepository: Repository<Survey>,
   ) {}
 
-  async completeSurvey(
-    answers: { questionId: number; choiceId: number; score: number }[],
-  ): Promise<void> {
-    for (const answer of answers) {
-      await this.answerService.createAnswer(
-        answer.questionId,
-        answer.choiceId,
-        answer.score,
-      );
+  async getSurveys(): Promise<Survey[]> {
+    return this.surveyRepository.find();
+  }
+
+  async getSurvey(id: number): Promise<Survey> {
+    const survey = await this.surveyRepository.findOne({ where: { id } });
+
+    if (!survey) {
+      throw new NotFoundException(`Survey with id ${id} not found`);
     }
+
+    return survey;
   }
 
-  async getCompletedSurveys(): Promise<Survey[]> {
-    return await this.surveyRepository.find();
-  }
-
-  async createSurvey(title: string, description: string): Promise<Survey> {
+  async createSurvey(input: {
+    title: string;
+    description: string;
+  }): Promise<Survey> {
+    const { title, description } = input;
     const survey = this.surveyRepository.create({ title, description });
-    return await this.surveyRepository.save(survey);
-  }
-
-  async findAllSurveys(): Promise<Survey[]> {
-    return await this.surveyRepository.find();
-  }
-
-  async findSurveyById(id: number): Promise<Survey | undefined> {
-    const options: FindOneOptions<Survey> = {
-      where: { id },
-    };
-
-    return await this.surveyRepository.findOne(options);
+    return this.surveyRepository.save(survey);
   }
 
   async updateSurvey(
     id: number,
-    title: string,
-    description: string,
-  ): Promise<Survey | undefined> {
-    await this.surveyRepository.update(id, { title, description });
-    return await this.findSurveyById(id);
+    input: { title: string; description: string },
+  ): Promise<Survey> {
+    const survey = await this.surveyRepository.findOne({ where: { id } });
+
+    if (!survey) {
+      throw new NotFoundException(`Survey with id ${id} not found`);
+    }
+
+    survey.title = input.title;
+    survey.description = input.description;
+    return this.surveyRepository.save(survey);
   }
 
-  async deleteSurvey(id: number): Promise<void> {
-    await this.surveyRepository.delete(id);
+  async deleteSurvey(id: number): Promise<boolean> {
+    const deleteResult = await this.surveyRepository.delete(id);
+    return deleteResult.affected > 0;
   }
 }
