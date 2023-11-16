@@ -16,7 +16,7 @@
 
 **IDE**: VScode [yarn 명령어로 인스톨해주세요 , 서버 실행은 nest start 입니다!]
 
-**ENV**: 메일로 보내겠습니다.
+**ENV**: [메일로 보내겠습니다!]
 
 **GitHub**: https://github.com/qndrl1004/Mind_Lab.git
 
