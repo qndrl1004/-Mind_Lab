@@ -1,22 +1,21 @@
 type Answer {
   id: Int!
-  question: Question!
   choice: Choice!
-  score: Int!
+  totalScore: Int!
 }
 
-input AnswerInput {
-  questionId: Int!
-  choiceId: Int!
-  score: Int!
+type Survey {
+  id: Int!
+  title: String!
+  description: String!
 }
 
 type Query {
-  answer(id: Int!): Answer!
-  answers: [Answer!]!
+  getCompletedSurveys: [Answer]
+  getSurveyTotalScore(surveyId: Int!): Int
+  getAllSurveys: [Survey]
 }
 
 type Mutation {
-  createAnswer(input: AnswerInput!): Answer!
-  deleteAnswer(id: Int!): Boolean!
+  createOrUpdateAnswer(choiceId: Int!): Answer
 }

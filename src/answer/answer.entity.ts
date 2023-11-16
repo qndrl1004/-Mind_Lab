@@ -1,7 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { Question } from '../question/question.entity';
-import { Choice } from '../choice/choice.entity';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Choice } from '../choice/choice.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  Column,
+  JoinColumn,
+} from 'typeorm';
+import { Question } from '../question/question.entity';
 
 @Entity()
 @ObjectType()
@@ -10,15 +16,18 @@ export class Answer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Field(() => Question)
-  @ManyToOne(() => Question, { onDelete: 'CASCADE' })
-  question: Question;
-
-  @Field(() => Choice)
-  @ManyToOne(() => Choice, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Choice, (choice) => choice.answers)
+  @JoinColumn({ name: 'choiceId' })
   choice: Choice;
 
   @Field(() => Int)
   @Column()
-  score: number;
+  totalScore: number;
+
+  @ManyToOne(() => Question, (question) => question.answers)
+  @JoinColumn({ name: 'questionId' })
+  question: Question;
+
+  @Column()
+  surveyId: number;
 }

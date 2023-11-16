@@ -2,29 +2,34 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Survey {
+type Answer {
   id: Int!
-  title: String!
-  description: String!
+  choice: Choice!
+  totalScore: Int!
+  question: Question!
+  surveyId: Int!
 }
 
 type Choice {
   id: Int!
   content: String!
-  question: Question!
+  score: Int!
+  question: Question
+  answers: [Answer!]
 }
 
 type Question {
   id: Int!
   content: String!
   choices: [Choice!]
+  survey: Survey!
 }
 
-type Answer {
+type Survey {
   id: Int!
-  question: Question!
-  choice: Choice!
-  score: Int!
+  title: String!
+  description: String!
+  questions: [Question!]
 }
 
 type Query {
@@ -34,8 +39,9 @@ type Query {
   getQuestion(id: Int!): Question!
   getChoices: [Choice!]!
   getChoice(id: Int!): Choice!
-  answer(id: Int!): Answer!
-  answers: [Answer!]!
+  getAllSurveys: [Answer!]!
+  getCompletedSurveyDetails(surveyId: Int!): [Question!]!
+  getSurveyTotalScore(surveyId: Int!): Int!
 }
 
 type Mutation {
@@ -48,8 +54,7 @@ type Mutation {
   createChoice(input: CreateChoiceInput!): Choice!
   updateChoice(input: UpdateChoiceInput!): Choice!
   deleteChoice(id: Int!): Boolean!
-  createAnswer(input: AnswerInput!): Answer!
-  deleteAnswer(id: Int!): Boolean!
+  createOrUpdateAnswer(questionId: Int!, choiceId: Int!, surveyId: Int!): Answer!
 }
 
 input SurveyInput {
@@ -59,6 +64,7 @@ input SurveyInput {
 
 input CreateQuestionInput {
   content: String!
+  surveyId: Int!
 }
 
 input UpdateQuestionInput {
@@ -74,10 +80,4 @@ input CreateChoiceInput {
 input UpdateChoiceInput {
   id: Int!
   content: String!
-}
-
-input AnswerInput {
-  questionId: Int!
-  choiceId: Int!
-  score: Int!
 }

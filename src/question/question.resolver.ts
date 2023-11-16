@@ -14,6 +14,9 @@ import { Question } from './question.entity';
 class CreateQuestionInput {
   @Field()
   content: string;
+
+  @Field(() => Int)
+  surveyId: number;
 }
 
 @InputType()

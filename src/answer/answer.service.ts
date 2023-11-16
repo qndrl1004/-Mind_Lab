@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Answer } from './answer.entity';
@@ -7,38 +11,83 @@ import { Answer } from './answer.entity';
 export class AnswerService {
   constructor(
     @InjectRepository(Answer)
-    private answerRepository: Repository<Answer>,
+    private readonly answerRepository: Repository<Answer>,
   ) {}
 
-  async createAnswer(
-    questionId: number,
+  async createOrUpdateAnswer(
     choiceId: number,
-    score: number,
+    totalScore: number,
+    questionId: number,
+    surveyId: number,
   ): Promise<Answer> {
-    const answer = this.answerRepository.create({
-      question: { id: questionId },
-      choice: { id: choiceId },
-      score,
-    });
-    return this.answerRepository.save(answer);
-  }
-
-  async getAnswerById(id: number): Promise<Answer> {
     try {
-      return await this.answerRepository.findOne({ where: { id } });
+      const answer = this.answerRepository.create({
+        choiceId,
+        totalScore,
+        questionId,
+        surveyId,
+      });
+
+      return await this.answerRepository.save(answer);
     } catch (error) {
-      throw new NotFoundException(
-        `Error getting answer with id ${id}: ${error.message}`,
+      throw new InternalServerErrorException(
+        'Error while creating/updating answer',
       );
     }
   }
 
-  async getAllAnswers(): Promise<Answer[]> {
-    return this.answerRepository.find({ relations: ['question', 'choice'] });
+  async getSurveyTotalScore(surveyId: number): Promise<number> {
+    try {
+      const answers = await this.answerRepository.find({
+        where: { surveyId },
+        relations: ['choice'], // Update the relation based on your entity structure
+      });
+
+      const totalScore = answers.reduce(
+        (acc, answer) => acc + answer.totalScore,
+        0,
+      );
+
+      return totalScore;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error while calculating total score',
+      );
+    }
   }
 
-  async deleteAnswer(id: number): Promise<boolean> {
-    const deleteResult = await this.answerRepository.delete(id);
-    return deleteResult.affected > 0;
+  async isSurveyCompleted(surveyId: number): Promise<boolean> {
+    try {
+      const count = await this.answerRepository.count({
+        where: { surveyId },
+      });
+
+      // 전체 문항 수와 답변된 문항 수가 일치하면 완료된 것으로 간주
+      const totalQuestions = 10; // 예시로 문항 수를 10으로 가정
+      return count === totalQuestions;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error while checking survey completion',
+      );
+    }
+  }
+
+  async getCompletedSurvey(surveyId: number): Promise<Answer[]> {
+    try {
+      const answers = await this.answerRepository.find({
+        where: { surveyId },
+        relations: ['choice', 'question'],
+      });
+
+      if (!answers || answers.length === 0) {
+        throw new NotFoundException('No completed survey found');
+      }
+
+      return answers;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error while fetching completed survey',
+      );
+    }
   }
 }

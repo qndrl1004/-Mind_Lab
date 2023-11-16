@@ -1,6 +1,7 @@
 type Choice {
   id: Int!
   content: String!
+  score: Int!
 }
 
 type Question {
