@@ -1,16 +1,19 @@
-import { Question } from './../question/question.entity';
 import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Choice } from './choice.entity';
 import { UpdateChoiceInput } from './choice.resolver';
+import { Question } from './../question/question.entity';
 
 @Injectable()
 export class ChoiceService {
+  private readonly logger = new Logger(ChoiceService.name);
+
   constructor(
     @InjectRepository(Choice)
     private choiceRepository: Repository<Choice>,
@@ -22,6 +25,10 @@ export class ChoiceService {
     try {
       return await this.choiceRepository.find();
     } catch (error) {
+      this.logger.error(
+        `Error while fetching choices: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException('Error while fetching choices');
     }
   }
@@ -34,6 +41,10 @@ export class ChoiceService {
       }
       return choice;
     } catch (error) {
+      this.logger.error(
+        `Error while fetching choice: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException('Error while fetching choice');
     }
   }
@@ -61,6 +72,10 @@ export class ChoiceService {
 
       return await this.choiceRepository.save(choice);
     } catch (error) {
+      this.logger.error(
+        `Error while creating choice: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException('Error while creating choice');
     }
   }
@@ -77,6 +92,10 @@ export class ChoiceService {
       choice.content = content;
       return await this.choiceRepository.save(choice);
     } catch (error) {
+      this.logger.error(
+        `Error while updating choice: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException('Error while updating choice');
     }
   }
@@ -86,6 +105,10 @@ export class ChoiceService {
       const deleteResult = await this.choiceRepository.delete(id);
       return deleteResult.affected > 0;
     } catch (error) {
+      this.logger.error(
+        `Error while deleting choice: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException('Error while deleting choice');
     }
   }
@@ -104,17 +127,26 @@ export class ChoiceService {
         await this.choiceRepository.save(choices);
       }
     } catch (error) {
+      this.logger.error(
+        `Error while initializing scores for new question: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException(
         'Error while initializing scores for new question',
       );
     }
   }
+
   async getChoicesBySurveyId(surveyId: number): Promise<Choice[]> {
     try {
       return await this.choiceRepository.find({
         where: { question: { survey: { id: surveyId } } },
       });
     } catch (error) {
+      this.logger.error(
+        `Error while fetching choices: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException('Error while fetching choices');
     }
   }

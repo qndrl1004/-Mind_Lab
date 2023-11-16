@@ -24,7 +24,7 @@ export class SurveyService {
         relations: ['questions', 'questions.choices'],
       });
     } catch (error) {
-      throw new InternalServerErrorException('Error while fetching surveys');
+      this.logAndThrowError('Error while fetching surveys', error);
     }
   }
 
@@ -38,8 +38,7 @@ export class SurveyService {
 
       return survey;
     } catch (error) {
-      this.logger.error(`Error in getSurvey: ${error.message}`);
-      throw new Error('Failed to fetch survey');
+      this.logAndThrowError('Failed to fetch survey', error);
     }
   }
 
@@ -48,8 +47,7 @@ export class SurveyService {
       const survey = this.surveyRepository.create(data);
       return await this.surveyRepository.save(survey);
     } catch (error) {
-      this.logger.error(`Error in createSurvey: ${error.message}`);
-      throw new Error('Failed to create survey');
+      this.logAndThrowError('Failed to create survey', error);
     }
   }
 
@@ -68,8 +66,7 @@ export class SurveyService {
       survey.description = input.description;
       return await this.surveyRepository.save(survey);
     } catch (error) {
-      this.logger.error(`Error in updateSurvey: ${error.message}`);
-      throw new Error('Failed to update survey');
+      this.logAndThrowError('Failed to update survey', error);
     }
   }
 
@@ -78,8 +75,12 @@ export class SurveyService {
       const deleteResult = await this.surveyRepository.delete(id);
       return deleteResult.affected > 0;
     } catch (error) {
-      this.logger.error(`Error in deleteSurvey: ${error.message}`);
-      throw new Error('Failed to delete survey');
+      this.logAndThrowError('Failed to delete survey', error);
     }
+  }
+
+  private logAndThrowError(message: string, error: any): void {
+    this.logger.error(`${message}: ${error.message}`, error.stack);
+    throw new InternalServerErrorException(message);
   }
 }

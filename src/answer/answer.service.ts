@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +13,8 @@ import { Choice } from '../choice/choice.entity';
 
 @Injectable()
 export class AnswerService {
+  private readonly logger = new Logger(AnswerService.name);
+
   constructor(
     @InjectRepository(Answer)
     private readonly answerRepository: Repository<Answer>,
@@ -46,7 +49,13 @@ export class AnswerService {
 
       return await this.answerRepository.save(answer);
     } catch (error) {
-      console.error('Error while creating/updating answer:', error);
+      this.logger.error(
+        `Error while creating/updating answer: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        'Error while creating/updating answer',
+      );
     }
   }
 
@@ -64,6 +73,10 @@ export class AnswerService {
 
       return totalScore;
     } catch (error) {
+      this.logger.error(
+        `Error while calculating total score: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException(
         'Error while calculating total score',
       );
@@ -80,6 +93,10 @@ export class AnswerService {
 
       return count === questionCount;
     } catch (error) {
+      this.logger.error(
+        `Error while checking survey completion: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException(
         'Error while checking survey completion',
       );
@@ -97,6 +114,10 @@ export class AnswerService {
 
       return questionCount;
     } catch (error) {
+      this.logger.error(
+        `Error while getting question count: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException(
         'Error while getting question count',
       );
@@ -111,11 +132,16 @@ export class AnswerService {
       });
 
       if (!answers || answers.length === 0) {
+        this.logger.warn(`No completed survey found for surveyId: ${surveyId}`);
         throw new NotFoundException('No completed survey found');
       }
 
       return answers;
     } catch (error) {
+      this.logger.error(
+        `Error while fetching completed survey: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException(
         'Error while fetching completed survey',
       );
