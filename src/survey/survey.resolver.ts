@@ -24,8 +24,8 @@ export class SurveyResolver {
   constructor(private readonly surveyService: SurveyService) {}
 
   @Query(() => [Survey])
-  async getSurveys(): Promise<Survey[]> {
-    return this.surveyService.getSurveys();
+  async getAllSurveys(): Promise<Survey[]> {
+    return this.surveyService.getAllSurveys();
   }
 
   @Query(() => Survey)

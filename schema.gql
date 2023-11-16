@@ -7,7 +7,7 @@ type Answer {
   choice: Choice!
   totalScore: Int!
   question: Question!
-  surveyId: Int!
+  survey: Survey!
 }
 
 type Choice {
@@ -23,6 +23,7 @@ type Question {
   content: String!
   choices: [Choice!]
   survey: Survey!
+  answers: [Answer!]!
 }
 
 type Survey {
@@ -33,15 +34,15 @@ type Survey {
 }
 
 type Query {
-  getSurveys: [Survey!]!
+  getAllSurveys: [Survey!]!
   getSurvey(id: Int!): Survey!
   getQuestions: [Question!]!
   getQuestion(id: Int!): Question!
   getChoices: [Choice!]!
   getChoice(id: Int!): Choice!
-  getAllSurveys: [Answer!]!
-  getCompletedSurveyDetails(surveyId: Int!): [Question!]!
   getSurveyTotalScore(surveyId: Int!): Int!
+  isSurveyCompleted(surveyId: Int!): Boolean!
+  getCompletedSurvey(surveyId: Int!): [Answer!]!
 }
 
 type Mutation {
@@ -54,7 +55,7 @@ type Mutation {
   createChoice(input: CreateChoiceInput!): Choice!
   updateChoice(input: UpdateChoiceInput!): Choice!
   deleteChoice(id: Int!): Boolean!
-  createOrUpdateAnswer(questionId: Int!, choiceId: Int!, surveyId: Int!): Answer!
+  createOrUpdateAnswer(input: CreateOrUpdateAnswerInput!): Answer!
 }
 
 input SurveyInput {
@@ -80,4 +81,10 @@ input CreateChoiceInput {
 input UpdateChoiceInput {
   id: Int!
   content: String!
+}
+
+input CreateOrUpdateAnswerInput {
+  choiceId: Int!
+  questionId: Int!
+  surveyId: Int!
 }

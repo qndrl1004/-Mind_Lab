@@ -6,6 +6,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Answer } from './answer.entity';
+import { Question } from '../question/question.entity';
+import { Survey } from '../survey/survey.entity';
+import { Choice } from '../choice/choice.entity';
 
 @Injectable()
 export class AnswerService {
@@ -16,31 +19,42 @@ export class AnswerService {
 
   async createOrUpdateAnswer(
     choiceId: number,
-    totalScore: number,
     questionId: number,
     surveyId: number,
   ): Promise<Answer> {
     try {
+      const choice = await this.answerRepository.manager.findOneOrFail(Choice, {
+        where: { id: choiceId },
+      });
+
+      const question = await this.answerRepository.manager.findOneOrFail(
+        Question,
+        {
+          where: { id: questionId },
+        },
+      );
+
+      const survey = await this.answerRepository.manager.findOneOrFail(Survey, {
+        where: { id: surveyId },
+      });
+
       const answer = this.answerRepository.create({
-        choiceId,
-        totalScore,
-        questionId,
-        surveyId,
+        choice,
+        question,
+        survey,
       });
 
       return await this.answerRepository.save(answer);
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Error while creating/updating answer',
-      );
+      console.error('Error while creating/updating answer:', error);
     }
   }
 
   async getSurveyTotalScore(surveyId: number): Promise<number> {
     try {
       const answers = await this.answerRepository.find({
-        where: { surveyId },
-        relations: ['choice'], // Update the relation based on your entity structure
+        where: { survey: { id: surveyId } },
+        relations: ['choice'],
       });
 
       const totalScore = answers.reduce(
@@ -58,13 +72,13 @@ export class AnswerService {
 
   async isSurveyCompleted(surveyId: number): Promise<boolean> {
     try {
+      const questionCount = await this.getQuestionCount(surveyId);
+
       const count = await this.answerRepository.count({
-        where: { surveyId },
+        where: { survey: { id: surveyId } },
       });
 
-      // 전체 문항 수와 답변된 문항 수가 일치하면 완료된 것으로 간주
-      const totalQuestions = 10; // 예시로 문항 수를 10으로 가정
-      return count === totalQuestions;
+      return count === questionCount;
     } catch (error) {
       throw new InternalServerErrorException(
         'Error while checking survey completion',
@@ -72,11 +86,28 @@ export class AnswerService {
     }
   }
 
+  private async getQuestionCount(surveyId: number): Promise<number> {
+    try {
+      const questionRepository =
+        this.answerRepository.manager.getRepository(Question);
+
+      const questionCount = await questionRepository.count({
+        where: { survey: { id: surveyId } },
+      });
+
+      return questionCount;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error while getting question count',
+      );
+    }
+  }
+
   async getCompletedSurvey(surveyId: number): Promise<Answer[]> {
     try {
       const answers = await this.answerRepository.find({
-        where: { surveyId },
-        relations: ['choice', 'question'],
+        where: { survey: { id: surveyId } },
+        relations: ['choice', 'question', 'survey'],
       });
 
       if (!answers || answers.length === 0) {

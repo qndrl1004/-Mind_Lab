@@ -1,34 +1,39 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  InputType,
+  Field,
+} from '@nestjs/graphql';
 import { AnswerService } from './answer.service';
 import { Answer } from './answer.entity';
-import { Survey } from '../survey/survey.entity';
-import { Question } from '../question/question.entity';
+
+@InputType()
+class CreateOrUpdateAnswerInput {
+  @Field(() => Int)
+  choiceId: number;
+
+  @Field(() => Int)
+  questionId: number;
+
+  @Field(() => Int)
+  surveyId: number;
+}
 
 @Resolver(() => Answer)
 export class AnswerResolver {
   constructor(private readonly answerService: AnswerService) {}
 
-  @Query(() => [Answer])
-  async getAllSurveys(): Promise<Survey[]> {
-    return this.answerService.getAllSurveys();
-  }
-
-  @Query(() => [Question])
-  async getCompletedSurveyDetails(
-    @Args('surveyId', { type: () => Int }) surveyId: number,
-  ): Promise<Question> {
-    return this.answerService.getCompletedSurveyDetails(surveyId);
-  }
-
   @Mutation(() => Answer)
   async createOrUpdateAnswer(
-    @Args('questionId', { type: () => Int }) questionId: number,
-    @Args('choiceId', { type: () => Int }) choiceId: number,
-    @Args('surveyId', { type: () => Int }) surveyId: number,
+    @Args('input') input: CreateOrUpdateAnswerInput,
   ): Promise<Answer> {
+    const { choiceId, questionId, surveyId } = input;
     return this.answerService.createOrUpdateAnswer(
-      questionId,
       choiceId,
+      questionId,
       surveyId,
     );
   }
@@ -38,5 +43,19 @@ export class AnswerResolver {
     @Args('surveyId', { type: () => Int }) surveyId: number,
   ): Promise<number> {
     return this.answerService.getSurveyTotalScore(surveyId);
+  }
+
+  @Query(() => Boolean)
+  async isSurveyCompleted(
+    @Args('surveyId', { type: () => Int }) surveyId: number,
+  ): Promise<boolean> {
+    return this.answerService.isSurveyCompleted(surveyId);
+  }
+
+  @Query(() => [Answer])
+  async getCompletedSurvey(
+    @Args('surveyId', { type: () => Int }) surveyId: number,
+  ): Promise<Answer[]> {
+    return this.answerService.getCompletedSurvey(surveyId);
   }
 }

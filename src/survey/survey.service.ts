@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Survey } from './survey.entity';
@@ -13,12 +18,13 @@ export class SurveyService {
     private surveyRepository: Repository<Survey>,
   ) {}
 
-  async getSurveys(): Promise<Survey[]> {
+  async getAllSurveys(): Promise<Survey[]> {
     try {
-      return await this.surveyRepository.find();
+      return await this.surveyRepository.find({
+        relations: ['questions', 'questions.choices'],
+      });
     } catch (error) {
-      this.logger.error(`Error in getSurveys: ${error.message}`);
-      throw new Error('Failed to fetch surveys');
+      throw new InternalServerErrorException('Error while fetching surveys');
     }
   }
 
