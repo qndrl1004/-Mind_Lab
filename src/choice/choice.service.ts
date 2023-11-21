@@ -4,11 +4,11 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { Choice } from './choice.entity';
-import { UpdateChoiceInput } from './choice.resolver';
+import { UpdateChoiceInput } from './choice.input';
 import { Question } from './../question/question.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ChoiceService {
@@ -21,15 +21,25 @@ export class ChoiceService {
     private questionRepository: Repository<Question>,
   ) {}
 
+  private logAndThrowError(message: string, error: any): never {
+    const errorMessage = `${message}: ${error.message}`;
+    this.logger.error(errorMessage, error.stack);
+    throw new InternalServerErrorException(errorMessage);
+  }
+
+  private handleQueryError(
+    methodName: string,
+    id: number,
+    error: Error,
+  ): never {
+    this.logAndThrowError(`Error in ${methodName}`, error);
+  }
+
   async getChoices(): Promise<Choice[]> {
     try {
       return await this.choiceRepository.find();
     } catch (error) {
-      this.logger.error(
-        `Error while fetching choices: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Error while fetching choices');
+      this.logAndThrowError('Error while fetching choices', error);
     }
   }
 
@@ -41,11 +51,7 @@ export class ChoiceService {
       }
       return choice;
     } catch (error) {
-      this.logger.error(
-        `Error while fetching choice: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Error while fetching choice');
+      this.handleQueryError('getChoice', id, error);
     }
   }
 
@@ -72,11 +78,7 @@ export class ChoiceService {
 
       return await this.choiceRepository.save(choice);
     } catch (error) {
-      this.logger.error(
-        `Error while creating choice: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Error while creating choice');
+      this.logAndThrowError('Error while creating choice', error);
     }
   }
 
@@ -92,11 +94,7 @@ export class ChoiceService {
       choice.content = content;
       return await this.choiceRepository.save(choice);
     } catch (error) {
-      this.logger.error(
-        `Error while updating choice: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Error while updating choice');
+      this.logAndThrowError('Error while updating choice', error);
     }
   }
 
@@ -105,11 +103,7 @@ export class ChoiceService {
       const deleteResult = await this.choiceRepository.delete(id);
       return deleteResult.affected > 0;
     } catch (error) {
-      this.logger.error(
-        `Error while deleting choice: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Error while deleting choice');
+      this.logAndThrowError('Error while deleting choice', error);
     }
   }
 
@@ -127,12 +121,9 @@ export class ChoiceService {
         await this.choiceRepository.save(choices);
       }
     } catch (error) {
-      this.logger.error(
-        `Error while initializing scores for new question: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException(
+      this.logAndThrowError(
         'Error while initializing scores for new question',
+        error,
       );
     }
   }
@@ -143,11 +134,7 @@ export class ChoiceService {
         where: { question: { survey: { id: surveyId } } },
       });
     } catch (error) {
-      this.logger.error(
-        `Error while fetching choices: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException('Error while fetching choices');
+      this.logAndThrowError('Error while fetching choices', error);
     }
   }
 }

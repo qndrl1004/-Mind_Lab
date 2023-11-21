@@ -49,8 +49,8 @@ type Mutation {
   createSurvey(input: SurveyInput!): Survey!
   updateSurvey(id: Int!, input: SurveyInput!): Survey!
   deleteSurvey(id: Int!): Boolean!
-  createQuestion(input: CreateQuestionInput!): Question!
-  updateQuestion(input: UpdateQuestionInput!): Question!
+  createQuestion(input: QuestionInput!): Question!
+  updateQuestion(input: QuestionInput!): Question!
   deleteQuestion(id: Int!): Boolean!
   createChoice(input: CreateChoiceInput!): Choice!
   updateChoice(input: UpdateChoiceInput!): Choice!
@@ -63,14 +63,10 @@ input SurveyInput {
   description: String!
 }
 
-input CreateQuestionInput {
-  content: String!
-  surveyId: Int!
-}
-
-input UpdateQuestionInput {
+input QuestionInput {
   id: Int!
   content: String!
+  surveyId: Int
 }
 
 input CreateChoiceInput {

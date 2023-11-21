@@ -1,13 +1,8 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Survey } from './survey.entity';
-import { SurveyInput } from './survey.resolver';
+import { SurveyInput } from './survey.input';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class SurveyService {
@@ -18,13 +13,24 @@ export class SurveyService {
     private surveyRepository: Repository<Survey>,
   ) {}
 
+  private handleQueryError(
+    methodName: string,
+    id: number,
+    error: Error,
+  ): never {
+    this.logger.error(`Error in ${methodName}: ${error.message}`);
+    throw new Error(
+      `Failed to fetch ${methodName.toLowerCase()} with id ${id}`,
+    );
+  }
+
   async getAllSurveys(): Promise<Survey[]> {
     try {
       return await this.surveyRepository.find({
         relations: ['questions', 'questions.choices'],
       });
     } catch (error) {
-      this.logAndThrowError('Error while fetching surveys', error);
+      this.handleQueryError('getAllSurveys', 0, error);
     }
   }
 
@@ -38,7 +44,7 @@ export class SurveyService {
 
       return survey;
     } catch (error) {
-      this.logAndThrowError('Failed to fetch survey', error);
+      this.handleQueryError('getSurvey', id, error);
     }
   }
 
@@ -47,7 +53,7 @@ export class SurveyService {
       const survey = this.surveyRepository.create(data);
       return await this.surveyRepository.save(survey);
     } catch (error) {
-      this.logAndThrowError('Failed to create survey', error);
+      this.handleQueryError('createSurvey', 0, error);
     }
   }
 
@@ -66,7 +72,7 @@ export class SurveyService {
       survey.description = input.description;
       return await this.surveyRepository.save(survey);
     } catch (error) {
-      this.logAndThrowError('Failed to update survey', error);
+      this.handleQueryError('updateSurvey', id, error);
     }
   }
 
@@ -75,12 +81,7 @@ export class SurveyService {
       const deleteResult = await this.surveyRepository.delete(id);
       return deleteResult.affected > 0;
     } catch (error) {
-      this.logAndThrowError('Failed to delete survey', error);
+      this.handleQueryError('deleteSurvey', id, error);
     }
-  }
-
-  private logAndThrowError(message: string, error: any): void {
-    this.logger.error(`${message}: ${error.message}`, error.stack);
-    throw new InternalServerErrorException(message);
   }
 }

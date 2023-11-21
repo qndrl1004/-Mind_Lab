@@ -1,26 +1,7 @@
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Args,
-  Int,
-  InputType,
-  Field,
-} from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { AnswerService } from './answer.service';
 import { Answer } from './answer.entity';
-
-@InputType()
-class CreateOrUpdateAnswerInput {
-  @Field(() => Int)
-  choiceId: number;
-
-  @Field(() => Int)
-  questionId: number;
-
-  @Field(() => Int)
-  surveyId: number;
-}
+import { CreateOrUpdateAnswerInput } from './answer.input';
 
 @Resolver(() => Answer)
 export class AnswerResolver {

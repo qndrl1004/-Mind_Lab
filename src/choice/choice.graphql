@@ -2,7 +2,7 @@ type Choice {
   id: Int!
   content: String!
   score: Int!
-  questionId: Int!
+  question: Question!
 }
 
 input CreateChoiceInput {
@@ -16,8 +16,8 @@ input UpdateChoiceInput {
 }
 
 type Query {
-  getChoices: [Choice]!
-  getChoice(id: Int!): Choice!
+  choices: [Choice]!
+  choice(id: Int!): Choice!
 }
 
 type Mutation {

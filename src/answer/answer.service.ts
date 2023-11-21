@@ -20,6 +20,16 @@ export class AnswerService {
     private readonly answerRepository: Repository<Answer>,
   ) {}
 
+  private handleError(method: string, errorMessage: string, error: any): never {
+    this.logger.error(`${method} Error: ${errorMessage}`, error.stack);
+
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+
+    throw new InternalServerErrorException(errorMessage);
+  }
+
   async createOrUpdateAnswer(
     choiceId: number,
     questionId: number,
@@ -32,9 +42,7 @@ export class AnswerService {
 
       const question = await this.answerRepository.manager.findOneOrFail(
         Question,
-        {
-          where: { id: questionId },
-        },
+        { where: { id: questionId } },
       );
 
       const survey = await this.answerRepository.manager.findOneOrFail(Survey, {
@@ -49,12 +57,10 @@ export class AnswerService {
 
       return await this.answerRepository.save(answer);
     } catch (error) {
-      this.logger.error(
-        `Error while creating/updating answer: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException(
+      this.handleError(
+        'createOrUpdateAnswer',
         'Error while creating/updating answer',
+        error,
       );
     }
   }
@@ -73,12 +79,10 @@ export class AnswerService {
 
       return totalScore;
     } catch (error) {
-      this.logger.error(
-        `Error while calculating total score: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException(
+      this.handleError(
+        'getSurveyTotalScore',
         'Error while calculating total score',
+        error,
       );
     }
   }
@@ -93,12 +97,10 @@ export class AnswerService {
 
       return count === questionCount;
     } catch (error) {
-      this.logger.error(
-        `Error while checking survey completion: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException(
+      this.handleError(
+        'isSurveyCompleted',
         'Error while checking survey completion',
+        error,
       );
     }
   }
@@ -114,12 +116,10 @@ export class AnswerService {
 
       return questionCount;
     } catch (error) {
-      this.logger.error(
-        `Error while getting question count: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException(
+      this.handleError(
+        'getQuestionCount',
         'Error while getting question count',
+        error,
       );
     }
   }
@@ -138,12 +138,10 @@ export class AnswerService {
 
       return answers;
     } catch (error) {
-      this.logger.error(
-        `Error while fetching completed survey: ${error.message}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException(
+      this.handleError(
+        'getCompletedSurvey',
         'Error while fetching completed survey',
+        error,
       );
     }
   }

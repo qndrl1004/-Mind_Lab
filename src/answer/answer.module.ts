@@ -6,11 +6,16 @@ import { AnswerResolver } from './answer.resolver';
 import { Choice } from '../choice/choice.entity';
 import { ChoiceService } from '../choice/choice.service';
 import { Question } from '../question/question.entity';
-import { SurveyService } from '../survey/survey.service';
 import { Survey } from '../survey/survey.entity';
+import { SurveyService } from '../survey/survey.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Answer, Choice, Question, Survey])],
+  imports: [
+    TypeOrmModule.forFeature([Answer]),
+    TypeOrmModule.forFeature([Choice]),
+    TypeOrmModule.forFeature([Question]),
+    TypeOrmModule.forFeature([Survey]),
+  ],
   providers: [AnswerService, AnswerResolver, ChoiceService, SurveyService],
 })
 export class AnswerModule {}

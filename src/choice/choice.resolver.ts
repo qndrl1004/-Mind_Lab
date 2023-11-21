@@ -1,33 +1,8 @@
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Args,
-  Int,
-  InputType,
-  Field,
-} from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { ChoiceService } from './choice.service';
 import { Choice } from './choice.entity';
 import { QuestionService } from 'src/question/question.service';
-
-@InputType()
-class CreateChoiceInput {
-  @Field()
-  content: string;
-
-  @Field(() => Int)
-  questionId: number;
-}
-
-@InputType()
-export class UpdateChoiceInput {
-  @Field(() => Int)
-  id: number;
-
-  @Field()
-  content: string;
-}
+import { CreateChoiceInput, UpdateChoiceInput } from './choice.input';
 
 @Resolver(() => Choice)
 export class ChoiceResolver {
@@ -50,11 +25,16 @@ export class ChoiceResolver {
 
   @Mutation(() => Choice)
   async createChoice(@Args('input') input: CreateChoiceInput): Promise<Choice> {
-    const choice = await this.choiceService.createChoice(input);
+    const { content, questionId } = input;
 
-    choice.question = await this.questionService.getQuestion(input.questionId);
+    const choice = await this.choiceService.createChoice({
+      content,
+      questionId,
+    });
 
-    await this.choiceService.initializeScoresForNewQuestion(input.questionId);
+    choice.question = await this.questionService.getQuestion(questionId);
+
+    await this.choiceService.initializeScoresForNewQuestion(questionId);
 
     return choice;
   }

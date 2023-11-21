@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Question } from './question.entity';
 import { Survey } from 'src/survey/survey.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class QuestionService {
@@ -15,14 +15,24 @@ export class QuestionService {
     private surveyRepository: Repository<Survey>,
   ) {}
 
+  private handleQueryError(
+    methodName: string,
+    id: number,
+    error: Error,
+  ): never {
+    this.logger.error(`Error in ${methodName}: ${error.message}`);
+    throw new Error(
+      `Failed to fetch ${methodName.toLowerCase()} with id ${id}`,
+    );
+  }
+
   async getQuestions(): Promise<Question[]> {
     try {
       return await this.questionRepository.find({
         relations: ['choices', 'survey'],
       });
     } catch (error) {
-      this.logger.error(`Error in getQuestions: ${error.message}`);
-      throw new Error('Failed to fetch questions');
+      this.handleQueryError('getQuestions', 0, error);
     }
   }
 
@@ -39,8 +49,7 @@ export class QuestionService {
 
       return question;
     } catch (error) {
-      this.logger.error(`Error in getQuestion: ${error.message}`);
-      throw new Error('Failed to fetch question');
+      this.handleQueryError('getQuestion', id, error);
     }
   }
 
@@ -63,8 +72,7 @@ export class QuestionService {
 
       return await this.questionRepository.save(question);
     } catch (error) {
-      this.logger.error(`Error in createQuestion: ${error.message}`);
-      throw new Error('Failed to create question');
+      this.handleQueryError('createQuestion', 0, error);
     }
   }
 
@@ -86,8 +94,7 @@ export class QuestionService {
       question.content = content;
       return await this.questionRepository.save(question);
     } catch (error) {
-      this.logger.error(`Error in updateQuestion: ${error.message}`);
-      throw new Error('Failed to update question');
+      this.handleQueryError('updateQuestion', input.id, error);
     }
   }
 
@@ -96,8 +103,7 @@ export class QuestionService {
       const deleteResult = await this.questionRepository.delete(id);
       return deleteResult.affected > 0;
     } catch (error) {
-      this.logger.error(`Error in deleteQuestion: ${error.message}`);
-      throw new Error('Failed to delete question');
+      this.handleQueryError('deleteQuestion', id, error);
     }
   }
 }

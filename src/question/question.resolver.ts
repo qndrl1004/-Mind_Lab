@@ -1,32 +1,7 @@
-import {
-  Resolver,
-  Query,
-  Mutation,
-  Args,
-  Int,
-  InputType,
-  Field,
-} from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { QuestionService } from './question.service';
 import { Question } from './question.entity';
-
-@InputType()
-class CreateQuestionInput {
-  @Field()
-  content: string;
-
-  @Field(() => Int)
-  surveyId: number;
-}
-
-@InputType()
-class UpdateQuestionInput {
-  @Field(() => Int)
-  id: number;
-
-  @Field()
-  content: string;
-}
+import { QuestionInput } from './question.input';
 
 @Resolver(() => Question)
 export class QuestionResolver {
@@ -34,34 +9,50 @@ export class QuestionResolver {
 
   @Query(() => [Question])
   async getQuestions(): Promise<Question[]> {
-    return this.questionService.getQuestions();
+    try {
+      return await this.questionService.getQuestions();
+    } catch (error) {
+      throw new Error(`Failed to fetch questions: ${error.message}`);
+    }
   }
 
   @Query(() => Question)
   async getQuestion(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<Question> {
-    return this.questionService.getQuestion(id);
+    try {
+      return await this.questionService.getQuestion(id);
+    } catch (error) {
+      throw new Error(`Failed to fetch question: ${error.message}`);
+    }
   }
 
   @Mutation(() => Question)
-  async createQuestion(
-    @Args('input') input: CreateQuestionInput,
-  ): Promise<Question> {
-    return this.questionService.createQuestion(input);
+  async createQuestion(@Args('input') input: QuestionInput): Promise<Question> {
+    try {
+      return await this.questionService.createQuestion(input);
+    } catch (error) {
+      throw new Error(`Failed to create question: ${error.message}`);
+    }
   }
 
   @Mutation(() => Question)
-  async updateQuestion(
-    @Args('input') input: UpdateQuestionInput,
-  ): Promise<Question> {
-    return this.questionService.updateQuestion(input);
+  async updateQuestion(@Args('input') input: QuestionInput): Promise<Question> {
+    try {
+      return await this.questionService.updateQuestion(input);
+    } catch (error) {
+      throw new Error(`Failed to update question: ${error.message}`);
+    }
   }
 
   @Mutation(() => Boolean)
   async deleteQuestion(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<boolean> {
-    return this.questionService.deleteQuestion(id);
+    try {
+      return await this.questionService.deleteQuestion(id);
+    } catch (error) {
+      throw new Error(`Failed to delete question: ${error.message}`);
+    }
   }
 }
