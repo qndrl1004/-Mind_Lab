@@ -11,19 +11,19 @@ export class Answer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Choice, (choice) => choice.answers)
   @Field(() => Choice)
+  @ManyToOne(() => Choice, (choice) => choice.answers)
   choice: Choice;
 
   @Field(() => Int)
   @Column({ nullable: true })
   totalScore: number;
 
-  @ManyToOne(() => Question, (question) => question.answers, { nullable: true })
   @Field(() => Question)
+  @ManyToOne(() => Question, (question) => question.answers, { nullable: true })
   question: Question;
 
-  @ManyToOne(() => Survey, { nullable: true })
   @Field(() => Survey)
+  @ManyToOne(() => Survey, { nullable: true })
   survey: Survey;
 }
